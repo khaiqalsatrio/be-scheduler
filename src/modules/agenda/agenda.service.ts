@@ -26,7 +26,9 @@ export class AgendaService {
   }
 
   async getAgenda(id: string, userId: string): Promise<Agenda> {
-    const agenda = await this.agendaRepository.findOne({ where: { id, userId } });
+    const agenda = await this.agendaRepository.findOne({
+      where: { id, userId },
+    });
     if (!agenda) {
       throw new NotFoundException('Agenda not found');
     }
@@ -37,7 +39,11 @@ export class AgendaService {
     return this.agendaRepository.find({ where: { userId } });
   }
 
-  async updateAgenda(id: string, userId: string, dto: UpdateAgendaDto): Promise<Agenda> {
+  async updateAgenda(
+    id: string,
+    userId: string,
+    dto: UpdateAgendaDto,
+  ): Promise<Agenda> {
     const agenda = await this.getAgenda(id, userId);
     if (dto.title !== undefined) agenda.title = dto.title;
     if (dto.description !== undefined) agenda.description = dto.description;

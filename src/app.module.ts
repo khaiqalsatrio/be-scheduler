@@ -7,6 +7,8 @@ import { UserModule } from './modules/user/user.module';
 import { OnboardingModule } from './modules/onboarding/onboarding.module';
 import { ConversationModule } from './modules/conversation/conversation.module';
 import { AgendaModule } from './modules/agenda/agenda.module';
+import { MessageModule } from './modules/message/message.module';
+import { ChatModule } from './modules/chat/chat.module';
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { AgendaModule } from './modules/agenda/agenda.module';
     OnboardingModule,
     ConversationModule,
     AgendaModule,
+    MessageModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],

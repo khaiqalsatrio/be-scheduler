@@ -22,11 +22,14 @@ async function bootstrap() {
     .setTitle('Be Scheduler API')
     .setDescription('Rapid docs for Be Scheduler backend')
     .setVersion('1.0')
-    .addBearerAuth({
-      type: 'http',
-      scheme: 'bearer',
-      bearerFormat: 'JWT',
-    }, 'access-token')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+      'access-token',
+    )
     .build();
 
   try {
@@ -36,9 +39,16 @@ async function bootstrap() {
         persistAuthorization: true,
       },
     });
-    console.log('✅ Swagger loaded at http://localhost:' + (process.env.PORT ?? 3000) + '/docs');
+    console.log(
+      '✅ Swagger loaded at http://localhost:' +
+        (process.env.PORT ?? 3000) +
+        '/docs',
+    );
   } catch (error) {
-    console.warn('⚠️  Swagger setup failed (continuing without it):', error.message);
+    console.warn(
+      '⚠️  Swagger setup failed (continuing without it):',
+      error.message,
+    );
   }
 
   const port = process.env.PORT ? Number(process.env.PORT) : 3000;
@@ -47,4 +57,3 @@ async function bootstrap() {
 }
 
 bootstrap();
-

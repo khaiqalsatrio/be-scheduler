@@ -4,7 +4,10 @@ import { Repository, In } from 'typeorm';
 import { CreateConversationDto } from './dto/create-conversation.dto';
 import { AddMemberDto } from './dto/add-member.dto';
 import { Conversation } from './entities/conversation.entity';
-import { ConversationMember, MemberRole } from './entities/conversation-member.entity';
+import {
+  ConversationMember,
+  MemberRole,
+} from './entities/conversation-member.entity';
 
 @Injectable()
 export class ConversationService {
@@ -15,7 +18,10 @@ export class ConversationService {
     private readonly memberRepository: Repository<ConversationMember>,
   ) {}
 
-  async createConversation(userId: string, dto: CreateConversationDto): Promise<Conversation> {
+  async createConversation(
+    userId: string,
+    dto: CreateConversationDto,
+  ): Promise<Conversation> {
     const now = new Date();
     const conversation = this.conversationRepository.create({
       type: dto.type,
@@ -24,7 +30,8 @@ export class ConversationService {
       knowledgePolicy: 'llm',
       knowledgeIds: [],
     });
-    const savedConversation = await this.conversationRepository.save(conversation);
+    const savedConversation =
+      await this.conversationRepository.save(conversation);
 
     const ownerMember = this.memberRepository.create({
       conversationId: savedConversation.id,
@@ -46,9 +53,21 @@ export class ConversationService {
     if (conversationIds.length === 0) {
       return [];
     }
-    return this.conversationRepository.find({
+    const conversations = await this.conversationRepository.find({
       where: { id: In(conversationIds) },
-      relations: ['members'],
+      relations: ['members', 'members.user'],
+    });
+
+    return conversations.map(conv => {
+      if (conv.type === 'dm' && conv.members) {
+        const recipientMember = conv.members.find(m => m.userId !== userId);
+        if (recipientMember && recipientMember.user) {
+          (conv as any).recipient = recipientMember.user;
+          conv.title = recipientMember.user.name;
+          conv.photoUrl = recipientMember.user.avatar || conv.photoUrl;
+        }
+      }
+      return conv;
     });
   }
 
@@ -63,16 +82,19 @@ export class ConversationService {
     return conversation;
   }
 
-  async addMember(conversationId: string, dto: AddMemberDto): Promise<ConversationMember> {
+  async addMember(
+    conversationId: string,
+    dto: AddMemberDto,
+  ): Promise<ConversationMember> {
     await this.getConversation(conversationId);
-    
+
     const existing = await this.memberRepository.findOne({
       where: { conversationId, userId: dto.userId },
     });
     if (existing) {
       return existing;
     }
-    
+
     const member = this.memberRepository.create({
       conversationId,
       userId: dto.userId,

@@ -11,7 +11,10 @@ export class OnboardingService {
     private readonly onboardingRepository: Repository<UserOnboarding>,
   ) {}
 
-  async createOnboarding(userId: string, dto: OnboardingDto): Promise<UserOnboarding> {
+  async createOnboarding(
+    userId: string,
+    dto: OnboardingDto,
+  ): Promise<UserOnboarding> {
     const onboarding = this.onboardingRepository.create({
       userId,
       references: dto.references,

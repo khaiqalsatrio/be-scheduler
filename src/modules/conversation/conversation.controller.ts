@@ -13,7 +13,10 @@ export class ConversationController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  createConversation(@User('userId') userId: string, @Body() dto: CreateConversationDto) {
+  createConversation(
+    @User('userId') userId: string,
+    @Body() dto: CreateConversationDto,
+  ) {
     return this.conversationService.createConversation(userId, dto);
   }
 

@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { User } from '../../common/decorators/user.decorator';
@@ -31,7 +39,11 @@ export class AgendaController {
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  updateAgenda(@User('userId') userId: string, @Param('id') id: string, @Body() dto: UpdateAgendaDto) {
+  updateAgenda(
+    @User('userId') userId: string,
+    @Param('id') id: string,
+    @Body() dto: UpdateAgendaDto,
+  ) {
     return this.agendaService.updateAgenda(id, userId, dto);
   }
 }

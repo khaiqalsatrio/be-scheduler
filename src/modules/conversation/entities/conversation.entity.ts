@@ -1,1 +1,4 @@
-export { Conversation, ConversationType } from '../../../typeorm/entities/conversation.entity.js';
+export {
+  Conversation,
+  ConversationType,
+} from '../../../typeorm/entities/conversation.entity.js';

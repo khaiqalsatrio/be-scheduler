@@ -17,6 +17,12 @@ export class UserController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get()
+  getAllUsers(@User('userId') userId: string) {
+    return this.userService.findAllUsers(userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Patch('me')
   updateMe(@User('userId') userId: string, @Body() dto: UpdateUserDto) {
     return this.userService.updateUser(userId, dto);

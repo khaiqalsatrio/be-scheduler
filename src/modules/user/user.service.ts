@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Not } from 'typeorm';
 import { User } from './entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 
@@ -20,7 +20,9 @@ export class UserService {
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.userRepository.findOne({ where: { email: email.toLowerCase() } });
+    return this.userRepository.findOne({
+      where: { email: email.toLowerCase() },
+    });
   }
 
   async findById(id: string): Promise<User | null> {
@@ -36,7 +38,20 @@ export class UserService {
     return result;
   }
 
-  async updateUser(id: string, dto: UpdateUserDto): Promise<Omit<User, 'password'>> {
+  async findAllUsers(currentUserId: string): Promise<Omit<User, 'password'>[]> {
+    const users = await this.userRepository.find({
+      where: { id: Not(currentUserId) },
+    });
+    return users.map((user) => {
+      const { password, ...result } = user;
+      return result;
+    });
+  }
+
+  async updateUser(
+    id: string,
+    dto: UpdateUserDto,
+  ): Promise<Omit<User, 'password'>> {
     const user = await this.findById(id);
     if (!user) {
       throw new NotFoundException('User not found');
