@@ -34,8 +34,15 @@ export class MessageService {
       relations: ['sender'],
     });
 
+    // Need to get conversation info as well
+    const conversation = await this.messageRepository.manager.findOne('Conversation', {
+      where: { id: conversationId }
+    });
+
     return {
+      messages,
       data: messages,
+      conversation,
       total,
       nextCursor:
         messages.length === limit
