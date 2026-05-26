@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { Repository, In, Not } from 'typeorm';
 import { CreateConversationDto } from './dto/create-conversation.dto';
 import { AddMemberDto } from './dto/add-member.dto';
 import { Conversation } from './entities/conversation.entity';
@@ -8,6 +8,7 @@ import {
   ConversationMember,
   MemberRole,
 } from './entities/conversation-member.entity';
+import { Message, MessageStatus } from '../../typeorm/entities/message.entity';
 
 @Injectable()
 export class ConversationService {
@@ -47,7 +48,7 @@ export class ConversationService {
     return savedConversation;
   }
 
-  async listConversations(userId: string): Promise<Conversation[]> {
+  async listConversations(userId: string): Promise<any[]> {
     const members = await this.memberRepository.find({ where: { userId } });
     const conversationIds = members.map((member) => member.conversationId);
     if (conversationIds.length === 0) {
@@ -58,17 +59,49 @@ export class ConversationService {
       relations: ['members', 'members.user'],
     });
 
-    return conversations.map(conv => {
-      if (conv.type === 'dm' && conv.members) {
-        const recipientMember = conv.members.find(m => m.userId !== userId);
-        if (recipientMember && recipientMember.user) {
-          (conv as any).recipient = recipientMember.user;
-          conv.title = recipientMember.user.name;
-          conv.photoUrl = recipientMember.user.avatar || conv.photoUrl;
+    return Promise.all(
+      conversations.map(async (conv) => {
+        let recipient: any = undefined;
+        if (conv.type === 'dm' && conv.members) {
+          const recipientMember = conv.members.find((m) => m.userId !== userId);
+          if (recipientMember && recipientMember.user) {
+            recipient = recipientMember.user;
+            conv.title = recipientMember.user.name;
+            conv.photoUrl = recipientMember.user.avatar || conv.photoUrl;
+          }
         }
-      }
-      return conv;
-    });
+
+        const lastMessage = await this.conversationRepository.manager.findOne(Message, {
+          where: { conversationId: conv.id },
+          order: { createdAt: 'DESC' },
+        });
+
+        const unreadCount = await this.conversationRepository.manager.count(Message, {
+          where: {
+            conversationId: conv.id,
+            status: Not(MessageStatus.READ),
+            senderId: Not(userId),
+          },
+        });
+
+        const convMember = conv.members.find(m => m.userId === userId);
+
+        return {
+          ...conv,
+          recipient,
+          last_message: lastMessage ? {
+            content: lastMessage.content,
+            type: lastMessage.type,
+            created_at: lastMessage.createdAt,
+            sender_id: lastMessage.senderId,
+          } : null,
+          unread_count: unreadCount,
+          is_muted: convMember?.isMuted || false,
+          is_archived: convMember?.isArchived || false,
+          pinned_at: null, // Add if needed
+        };
+      })
+    );
   }
 
   async getConversation(conversationId: string): Promise<Conversation> {
