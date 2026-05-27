@@ -16,6 +16,7 @@ export enum ConversationType {
   DOC_ANALYZE = 'doc_analyze',
   TIME_MACHINE = 'time_machine',
   KNOWLEDGE = 'knowledge',
+  CHANNEL = 'channel',
 }
 
 @Entity({ name: 'conversations' })
@@ -40,6 +41,9 @@ export class Conversation {
 
   @Column('simple-array', { nullable: true })
   knowledgeIds: string[];
+
+  @Column({ nullable: true })
+  category: string;
 
   @Column({ nullable: true })
   pinnedMessageId: string;

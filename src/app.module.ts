@@ -9,6 +9,7 @@ import { ConversationModule } from './modules/conversation/conversation.module';
 import { AgendaModule } from './modules/agenda/agenda.module';
 import { MessageModule } from './modules/message/message.module';
 import { ChatModule } from './modules/chat/chat.module';
+import { ChannelModule } from './modules/channel/channel.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { ChatModule } from './modules/chat/chat.module';
     AgendaModule,
     MessageModule,
     ChatModule,
+    ChannelModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -48,14 +48,20 @@ export class ConversationService {
     return savedConversation;
   }
 
-  async listConversations(userId: string): Promise<any[]> {
+  async listConversations(userId: string, type?: string): Promise<any[]> {
     const members = await this.memberRepository.find({ where: { userId } });
     const conversationIds = members.map((member) => member.conversationId);
     if (conversationIds.length === 0) {
       return [];
     }
+
+    const whereClause: any = { id: In(conversationIds) };
+    if (type) {
+      whereClause.type = type;
+    }
+
     const conversations = await this.conversationRepository.find({
-      where: { id: In(conversationIds) },
+      where: whereClause,
       relations: ['members', 'members.user'],
     });
 

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards, Query } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { User } from '../../common/decorators/user.decorator';
@@ -22,8 +22,11 @@ export class ConversationController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  listConversations(@User('userId') userId: string) {
-    return this.conversationService.listConversations(userId);
+  listConversations(
+    @User('userId') userId: string,
+    @Query('type') type?: string,
+  ) {
+    return this.conversationService.listConversations(userId, type);
   }
 
   @UseGuards(JwtAuthGuard)
