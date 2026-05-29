@@ -10,6 +10,8 @@ import { AgendaModule } from './modules/agenda/agenda.module';
 import { MessageModule } from './modules/message/message.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { ChannelModule } from './modules/channel/channel.module';
+import { DocumentModule } from './modules/document/document.module';
+import { AgentModule } from './modules/agent/agent.module';
 
 @Module({
   imports: [
@@ -33,6 +35,8 @@ import { ChannelModule } from './modules/channel/channel.module';
     MessageModule,
     ChatModule,
     ChannelModule,
+    DocumentModule,
+    AgentModule,
   ],
   controllers: [AppController],
   providers: [AppService],
