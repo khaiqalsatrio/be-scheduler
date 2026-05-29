@@ -14,5 +14,6 @@ import { ConversationModule } from '../conversation/conversation.module';
   ],
   controllers: [ChannelController],
   providers: [ChannelService],
+  exports: [ChannelService],
 })
 export class ChannelModule { }

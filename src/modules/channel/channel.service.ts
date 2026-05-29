@@ -81,4 +81,45 @@ export class ChannelService {
 
     return this.memberRepository.save(member);
   }
+
+  async autoCreateOrJoinChannel(userId: string, category: string): Promise<void> {
+    if (!category) return;
+    
+    const formattedCategory = category.trim();
+
+    // 1. Find if a channel for this category exists
+    let channel = await this.conversationRepository.findOne({
+      where: { 
+        type: ConversationType.CHANNEL,
+        category: formattedCategory
+      }
+    });
+
+    // 2. If not exists, create it
+    if (!channel) {
+      channel = this.conversationRepository.create({
+        type: ConversationType.CHANNEL,
+        title: `Komunitas ${formattedCategory}`,
+        category: formattedCategory,
+      });
+      channel = await this.conversationRepository.save(channel);
+    }
+
+    // 3. Join the user to the channel if not already joined
+    const existingMember = await this.memberRepository.findOne({
+      where: { conversationId: channel.id, userId }
+    });
+
+    if (!existingMember) {
+      const member = this.memberRepository.create({
+        conversationId: channel.id,
+        userId,
+        role: MemberRole.MEMBER,
+        joinedAt: new Date(),
+        isMuted: false,
+        isArchived: false,
+      });
+      await this.memberRepository.save(member);
+    }
+  }
 }
