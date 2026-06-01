@@ -1,8 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not } from 'typeorm';
 import { User } from './entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -80,6 +82,50 @@ export class UserService {
     }
     user.isOnboarded = true;
     user.updatedAt = new Date();
+    const updated = await this.userRepository.save(user);
+    const { password: _, ...result } = updated;
+    return result;
+  }
+
+  async updateAvatar(id: string, avatarUrl: string): Promise<Omit<User, 'password'>> {
+    const user = await this.findById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    user.avatar = avatarUrl;
+    user.updatedAt = new Date();
+    const updated = await this.userRepository.save(user);
+    const { password: _, ...result } = updated;
+    return result;
+  }
+
+  async deleteAvatar(id: string): Promise<Omit<User, 'password'>> {
+    const user = await this.findById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    user.avatar = '';
+    user.updatedAt = new Date();
+    const updated = await this.userRepository.save(user);
+    const { password: _, ...result } = updated;
+    return result;
+  }
+
+  async updatePassword(id: string, dto: UpdatePasswordDto): Promise<Omit<User, 'password'>> {
+    const user = await this.findById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const isMatch = await bcrypt.compare(dto.oldPassword, user.password || '');
+    if (!isMatch) {
+      throw new BadRequestException('Invalid old password');
+    }
+
+    const salt = await bcrypt.genSalt();
+    user.password = await bcrypt.hash(dto.newPassword, salt);
+    user.updatedAt = new Date();
+    
     const updated = await this.userRepository.save(user);
     const { password: _, ...result } = updated;
     return result;
