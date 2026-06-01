@@ -3,6 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Document } from '../../typeorm/entities/document.entity';
 import { AgentService } from '../agent/agent.service';
+import * as fs from 'fs';
+import * as path from 'path';
+const pdfParse = require('pdf-parse');
 
 @Injectable()
 export class DocumentService {
@@ -39,8 +42,44 @@ export class DocumentService {
     return this.documentRepo.remove(doc);
   }
 
+  private async extractFileText(doc: Document): Promise<string | null> {
+    try {
+      if (!doc || !doc.file_url) return null;
+      const filename = doc.file_url.split('/').pop();
+      if (!filename) return null;
+      
+      const filePath = path.join(process.cwd(), 'uploads', filename);
+      if (!fs.existsSync(filePath)) return null;
+
+      if (doc.file_type === 'application/pdf' || doc.file_url.endsWith('.pdf')) {
+        const dataBuffer = fs.readFileSync(filePath);
+        const data = await pdfParse(dataBuffer);
+        return data.text;
+      }
+      
+      if (doc.file_type === 'text/plain' || doc.file_url.endsWith('.txt')) {
+        return fs.readFileSync(filePath, 'utf8');
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error extracting text:', error);
+      return null;
+    }
+  }
+
   async generateRecap(sourceDocumentIds: string[], context: string) {
-    const prompt = `Tolong buatkan rekap/ringkasan berdasarkan konteks berikut: ${context}. Abaikan sourceDocumentIds untuk saat ini.`;
+    let docTitle = 'Dokumen';
+    let fileContent = '';
+    if (sourceDocumentIds && sourceDocumentIds.length > 0) {
+      const doc = await this.documentRepo.findOne({ where: { id: sourceDocumentIds[0] } });
+      if (doc) {
+        docTitle = doc.title;
+        const text = await this.extractFileText(doc);
+        if (text) fileContent = `\n\nIsi Dokumen:\n${text.substring(0, 15000)}`;
+      }
+    }
+    const prompt = `Tolong buatkan rekap/ringkasan berdasarkan konteks: ${context}. Judul dokumen adalah "${docTitle}". ${fileContent ? fileContent : '(Teks tidak tersedia, buatkan simulasi logis berdasarkan judul saja)'}`;
     const aiResponse = await this.agentService.askAgent(prompt);
     return {
       result: aiResponse.answer,
@@ -49,7 +88,17 @@ export class DocumentService {
   }
 
   async generateReport(sourceDocumentIds: string[], context: string) {
-    const prompt = `Tolong buatkan laporan (report) berdasarkan konteks berikut: ${context}. Abaikan sourceDocumentIds untuk saat ini.`;
+    let docTitle = 'Dokumen';
+    let fileContent = '';
+    if (sourceDocumentIds && sourceDocumentIds.length > 0) {
+      const doc = await this.documentRepo.findOne({ where: { id: sourceDocumentIds[0] } });
+      if (doc) {
+        docTitle = doc.title;
+        const text = await this.extractFileText(doc);
+        if (text) fileContent = `\n\nIsi Dokumen:\n${text.substring(0, 15000)}`;
+      }
+    }
+    const prompt = `Tolong buatkan laporan (report) berdasarkan konteks: ${context}. Judul dokumen adalah "${docTitle}". ${fileContent ? fileContent : '(Teks tidak tersedia, buatkan simulasi logis berdasarkan judul saja)'}`;
     const aiResponse = await this.agentService.askAgent(prompt);
     return {
       result: aiResponse.answer,
@@ -58,7 +107,17 @@ export class DocumentService {
   }
 
   async generateMom(sourceDocumentIds: string[], context: string) {
-    const prompt = `Tolong buatkan Minutes of Meeting (MoM) berdasarkan konteks berikut: ${context}. Abaikan sourceDocumentIds untuk saat ini.`;
+    let docTitle = 'Dokumen';
+    let fileContent = '';
+    if (sourceDocumentIds && sourceDocumentIds.length > 0) {
+      const doc = await this.documentRepo.findOne({ where: { id: sourceDocumentIds[0] } });
+      if (doc) {
+        docTitle = doc.title;
+        const text = await this.extractFileText(doc);
+        if (text) fileContent = `\n\nIsi Dokumen:\n${text.substring(0, 15000)}`;
+      }
+    }
+    const prompt = `Tolong buatkan Minutes of Meeting (MoM) berdasarkan konteks: ${context}. Judul dokumen adalah "${docTitle}". ${fileContent ? fileContent : '(Teks tidak tersedia, buatkan simulasi MoM logis berdasarkan judul saja)'}`;
     const aiResponse = await this.agentService.askAgent(prompt);
     return {
       result: aiResponse.answer,
