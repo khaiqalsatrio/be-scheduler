@@ -13,7 +13,7 @@ export class AgentService {
   async askAgent(query: string) {
     try {
       const model = this.genAI.getGenerativeModel({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-2.5-flash-lite',
       });
 
       const result = await model.generateContent(query);
