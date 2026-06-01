@@ -9,11 +9,15 @@ import { ConversationModule } from '../conversation/conversation.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Conversation, ConversationMember, UserOnboarding]),
+    TypeOrmModule.forFeature([
+      Conversation,
+      ConversationMember,
+      UserOnboarding,
+    ]),
     ConversationModule,
   ],
   controllers: [ChannelController],
   providers: [ChannelService],
   exports: [ChannelService],
 })
-export class ChannelModule { }
+export class ChannelModule {}

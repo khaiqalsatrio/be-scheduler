@@ -9,8 +9,6 @@ import { ChannelService } from './channel.service';
 export class ChannelController {
   constructor(private readonly channelService: ChannelService) {}
 
-
-
   @UseGuards(JwtAuthGuard)
   @Get('recommended')
   getRecommendedChannels(@User('userId') userId: string) {

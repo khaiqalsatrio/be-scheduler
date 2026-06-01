@@ -1,4 +1,18 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, Req, UseInterceptors, UploadedFile, HttpException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  Req,
+  UseInterceptors,
+  UploadedFile,
+  HttpException,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MessageService } from './message.service';
 import { CreateMessageDto } from './dto/create-message.dto';
@@ -17,7 +31,10 @@ export class MessageController {
   }
 
   @Get('search/:conversationId')
-  searchInConversation(@Param('conversationId') conversationId: string, @Query('q') query: string) {
+  searchInConversation(
+    @Param('conversationId') conversationId: string,
+    @Query('q') query: string,
+  ) {
     return this.messageService.searchInConversation(conversationId, query);
   }
 
@@ -27,7 +44,11 @@ export class MessageController {
     @Query('limit') limit: string,
     @Query('cursor') cursor: string,
   ) {
-    return this.messageService.findAll(conversationId, limit ? parseInt(limit, 10) : 20, cursor);
+    return this.messageService.findAll(
+      conversationId,
+      limit ? parseInt(limit, 10) : 20,
+      cursor,
+    );
   }
 
   @Post()
@@ -35,16 +56,25 @@ export class MessageController {
   async create(
     @Body() createMessageDto: CreateMessageDto,
     @Req() req: any,
-    @UploadedFile() file?: Express.Multer.File
+    @UploadedFile() file?: Express.Multer.File,
   ) {
     try {
       const userId = req.user.userId;
       if (file) {
-        createMessageDto.meta = { ...createMessageDto.meta, fileUrl: 'dummy-url' };
+        createMessageDto.meta = {
+          ...createMessageDto.meta,
+          fileUrl: 'dummy-url',
+        };
       }
       return await this.messageService.create(userId, createMessageDto);
     } catch (error: any) {
-      require('fs').appendFileSync('error.log', new Date().toISOString() + ' ' + (error.stack || error.message || error) + '\n');
+      require('fs').appendFileSync(
+        'error.log',
+        new Date().toISOString() +
+          ' ' +
+          (error.stack || error.message || error) +
+          '\n',
+      );
       throw new HttpException(error.message || error, 500);
     }
   }
@@ -59,7 +89,7 @@ export class MessageController {
   update(
     @Param('messageId') messageId: string,
     @Body() updateMessageDto: UpdateMessageDto,
-    @Req() req: any
+    @Req() req: any,
   ) {
     const userId = req.user.userId;
     return this.messageService.update(messageId, userId, updateMessageDto);
@@ -81,7 +111,7 @@ export class MessageController {
   react(
     @Param('messageId') messageId: string,
     @Body('reaction') reaction: string,
-    @Req() req: any
+    @Req() req: any,
   ) {
     const userId = req.user.userId;
     return this.messageService.react(messageId, reaction, userId);

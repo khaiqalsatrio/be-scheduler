@@ -18,11 +18,19 @@ export class CreateAgendaDto {
   @IsString()
   note?: string;
 
-  @ApiProperty({ type: String, format: 'date-time', description: 'Waktu mulai agenda' })
+  @ApiProperty({
+    type: String,
+    format: 'date-time',
+    description: 'Waktu mulai agenda',
+  })
   @IsDateString()
   startAt: string;
 
-  @ApiProperty({ type: String, format: 'date-time', description: 'Waktu selesai agenda' })
+  @ApiProperty({
+    type: String,
+    format: 'date-time',
+    description: 'Waktu selesai agenda',
+  })
   @IsDateString()
   endAt: string;
 

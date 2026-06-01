@@ -6,10 +6,7 @@ import { UserOnboarding } from './entities/onboarding.entity';
 import { ChannelModule } from '../channel/channel.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([UserOnboarding]),
-    ChannelModule,
-  ],
+  imports: [TypeOrmModule.forFeature([UserOnboarding]), ChannelModule],
   controllers: [OnboardingController],
   providers: [OnboardingService],
   exports: [OnboardingService],

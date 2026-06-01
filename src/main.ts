@@ -1,10 +1,11 @@
 import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
+  const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
 
   // Serve static uploads
@@ -44,21 +45,20 @@ async function bootstrap() {
         persistAuthorization: true,
       },
     });
-    console.log(
-      '✅ Swagger loaded at http://localhost:' +
-        (process.env.PORT ?? 3000) +
-        '/docs',
-    );
+    const port = process.env.PORT ?? 3000;
+    logger.log(`✅ Swagger loaded at http://localhost:${port}/docs`);
   } catch (error) {
-    console.warn(
-      '⚠️  Swagger setup failed (continuing without it):',
-      error.message,
+    logger.warn(
+      `⚠️  Swagger setup failed (continuing without it): ${error instanceof Error ? error.message : String(error)}`,
     );
   }
 
   const port = process.env.PORT ? Number(process.env.PORT) : 3000;
   await app.listen(port);
-  console.log(`🚀 Application running on http://localhost:${port}`);
+  logger.log(`🚀 Application running on http://localhost:${port}`);
 }
 
-bootstrap();
+bootstrap().catch((error) => {
+  console.error('Failed to bootstrap application:', error);
+  process.exit(1);
+});

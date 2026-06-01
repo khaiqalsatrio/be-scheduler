@@ -17,4 +17,4 @@ import { AgentModule } from '../agent/agent.module';
   controllers: [DocumentController],
   providers: [DocumentService],
 })
-export class DocumentModule { }
+export class DocumentModule {}

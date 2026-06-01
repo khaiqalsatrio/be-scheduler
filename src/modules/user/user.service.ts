@@ -16,17 +16,17 @@ export class UserService {
       ...partial,
       email: partial.email?.toLowerCase() ?? '',
     });
-    return this.userRepository.save(user);
+    return await this.userRepository.save(user);
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.userRepository.findOne({
+    return await this.userRepository.findOne({
       where: { email: email.toLowerCase() },
     });
   }
 
   async findById(id: string): Promise<User | null> {
-    return this.userRepository.findOne({ where: { id } });
+    return await this.userRepository.findOne({ where: { id } });
   }
 
   async getProfile(id: string): Promise<Omit<User, 'password'>> {

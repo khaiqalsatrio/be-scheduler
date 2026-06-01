@@ -48,7 +48,10 @@ export class ConversationService {
     return savedConversation;
   }
 
-  async createOrGetDm(userId: string, targetUserId: string): Promise<Conversation> {
+  async createOrGetDm(
+    userId: string,
+    targetUserId: string,
+  ): Promise<Conversation> {
     const myConversations = await this.memberRepository.find({
       where: { userId },
     });
@@ -75,7 +78,8 @@ export class ConversationService {
       knowledgePolicy: 'llm',
       knowledgeIds: [],
     });
-    const savedConversation = await this.conversationRepository.save(conversation);
+    const savedConversation =
+      await this.conversationRepository.save(conversation);
 
     const now = new Date();
     const user1 = this.memberRepository.create({
@@ -97,7 +101,7 @@ export class ConversationService {
 
     await this.memberRepository.save([user1, user2]);
     savedConversation.members = [user1, user2];
-    
+
     return savedConversation;
   }
 
@@ -130,36 +134,44 @@ export class ConversationService {
           }
         }
 
-        const lastMessage = await this.conversationRepository.manager.findOne(Message, {
-          where: { conversationId: conv.id },
-          order: { createdAt: 'DESC' },
-        });
-
-        const unreadCount = await this.conversationRepository.manager.count(Message, {
-          where: {
-            conversationId: conv.id,
-            status: Not(MessageStatus.READ),
-            senderId: Not(userId),
+        const lastMessage = await this.conversationRepository.manager.findOne(
+          Message,
+          {
+            where: { conversationId: conv.id },
+            order: { createdAt: 'DESC' },
           },
-        });
+        );
 
-        const convMember = conv.members.find(m => m.userId === userId);
+        const unreadCount = await this.conversationRepository.manager.count(
+          Message,
+          {
+            where: {
+              conversationId: conv.id,
+              status: Not(MessageStatus.READ),
+              senderId: Not(userId),
+            },
+          },
+        );
+
+        const convMember = conv.members.find((m) => m.userId === userId);
 
         return {
           ...conv,
           recipient,
-          last_message: lastMessage ? {
-            content: lastMessage.content,
-            type: lastMessage.type,
-            created_at: lastMessage.createdAt,
-            sender_id: lastMessage.senderId,
-          } : null,
+          last_message: lastMessage
+            ? {
+                content: lastMessage.content,
+                type: lastMessage.type,
+                created_at: lastMessage.createdAt,
+                sender_id: lastMessage.senderId,
+              }
+            : null,
           unread_count: unreadCount,
           is_muted: convMember?.isMuted || false,
           is_archived: convMember?.isArchived || false,
           pinned_at: null, // Add if needed
         };
-      })
+      }),
     );
   }
 
@@ -176,7 +188,7 @@ export class ConversationService {
 
   async getMembers(conversationId: string): Promise<ConversationMember[]> {
     await this.getConversation(conversationId);
-    return this.memberRepository.find({
+    return await this.memberRepository.find({
       where: { conversationId },
       relations: ['user'],
     });
@@ -203,6 +215,6 @@ export class ConversationService {
       isMuted: false,
       isArchived: false,
     });
-    return this.memberRepository.save(member);
+    return await this.memberRepository.save(member);
   }
 }

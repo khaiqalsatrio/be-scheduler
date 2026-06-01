@@ -12,12 +12,20 @@ export class UpdateAgendaDto {
   @IsString()
   note?: string;
 
-  @ApiPropertyOptional({ type: String, format: 'date-time', description: 'Waktu mulai agenda' })
+  @ApiPropertyOptional({
+    type: String,
+    format: 'date-time',
+    description: 'Waktu mulai agenda',
+  })
   @IsOptional()
   @IsDateString()
   startAt?: string;
 
-  @ApiPropertyOptional({ type: String, format: 'date-time', description: 'Waktu selesai agenda' })
+  @ApiPropertyOptional({
+    type: String,
+    format: 'date-time',
+    description: 'Waktu selesai agenda',
+  })
   @IsOptional()
   @IsDateString()
   endAt?: string;

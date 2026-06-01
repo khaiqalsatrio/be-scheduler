@@ -25,7 +25,12 @@ import { AgentModule } from './modules/agent/agent.module';
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: process.env.DB_SYNCHRONIZE === 'true',
       logging: process.env.NODE_ENV === 'production' ? false : ['error'],
-      // keep default behavior for connection retries in production
+      // Connection pool configuration to prevent concurrent query warnings
+      extra: {
+        max: 10,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 2000,
+      },
     }),
     AuthModule,
     UserModule,

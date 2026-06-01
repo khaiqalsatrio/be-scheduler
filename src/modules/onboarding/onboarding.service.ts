@@ -22,16 +22,18 @@ export class OnboardingService {
       references: dto.references,
       interests: dto.interests,
     });
-    
+
     const savedOnboarding = await this.onboardingRepository.save(onboarding);
 
     // Auto-join channel based on primary interest in the background
     if (dto.interests && dto.interests.length > 0) {
       const primaryCategory = dto.interests[0].category;
       if (primaryCategory) {
-        this.channelService.autoCreateOrJoinChannel(userId, primaryCategory).catch((err) => {
-          console.error('Error auto-joining channel:', err);
-        });
+        this.channelService
+          .autoCreateOrJoinChannel(userId, primaryCategory)
+          .catch((err) => {
+            console.error('Error auto-joining channel:', err);
+          });
       }
     }
 
@@ -39,6 +41,6 @@ export class OnboardingService {
   }
 
   async findByUserId(userId: string): Promise<UserOnboarding | null> {
-    return this.onboardingRepository.findOne({ where: { userId } });
+    return await this.onboardingRepository.findOne({ where: { userId } });
   }
 }

@@ -4,11 +4,15 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan, ILike, FindOptionsWhere, In, Not } from 'typeorm';
 import {
-  Message,
-  MessageStatus,
-} from '../../typeorm/entities/message.entity';
+  Repository,
+  LessThan,
+  ILike,
+  FindOptionsWhere,
+  In,
+  Not,
+} from 'typeorm';
+import { Message, MessageStatus } from '../../typeorm/entities/message.entity';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
 import { ChatGateway } from '../chat/chat.gateway';
@@ -35,9 +39,12 @@ export class MessageService {
     });
 
     // Need to get conversation info as well
-    const conversation = await this.messageRepository.manager.findOne('Conversation', {
-      where: { id: conversationId }
-    });
+    const conversation = await this.messageRepository.manager.findOne(
+      'Conversation',
+      {
+        where: { id: conversationId },
+      },
+    );
 
     return {
       messages,
@@ -66,7 +73,8 @@ export class MessageService {
     });
 
     if (createMessageDto.clientMessageId) {
-      (messageWithSender as any).client_message_id = createMessageDto.clientMessageId;
+      (messageWithSender as any).client_message_id =
+        createMessageDto.clientMessageId;
     }
 
     this.chatGateway.emitNewMessage(
@@ -79,10 +87,10 @@ export class MessageService {
 
   async markAsRead(conversationId: string, userId: string) {
     await this.messageRepository.update(
-      { 
-        conversationId, 
+      {
+        conversationId,
         senderId: Not(userId),
-        status: In([MessageStatus.SENT, MessageStatus.DELIVERED]) 
+        status: In([MessageStatus.SENT, MessageStatus.DELIVERED]),
       },
       { status: MessageStatus.READ },
     );
@@ -169,7 +177,7 @@ export class MessageService {
 
   async globalSearch(query: string, userId: string) {
     // In real app, filter by conversations the user is in.
-    return this.messageRepository.find({
+    return await this.messageRepository.find({
       where: { content: ILike(`%${query}%`) },
       relations: ['conversation', 'sender'],
       take: 50,
@@ -178,7 +186,7 @@ export class MessageService {
   }
 
   async searchInConversation(conversationId: string, query: string) {
-    return this.messageRepository.find({
+    return await this.messageRepository.find({
       where: { conversationId, content: ILike(`%${query}%`) },
       relations: ['sender'],
       take: 50,

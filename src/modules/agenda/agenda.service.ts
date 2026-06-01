@@ -22,7 +22,7 @@ export class AgendaService {
       location: dto.location,
       isAllDay: dto.isAllDay ?? false,
     });
-    return this.agendaRepository.save(agenda);
+    return await this.agendaRepository.save(agenda);
   }
 
   async getAgenda(id: string, userId: string): Promise<Agenda> {
@@ -36,7 +36,7 @@ export class AgendaService {
   }
 
   async listAgenda(userId: string): Promise<Agenda[]> {
-    return this.agendaRepository.find({ where: { userId } });
+    return await this.agendaRepository.find({ where: { userId } });
   }
 
   async updateAgenda(
@@ -51,7 +51,7 @@ export class AgendaService {
     if (dto.endAt !== undefined) agenda.endAt = new Date(dto.endAt);
     if (dto.location !== undefined) agenda.location = dto.location;
     if (dto.isAllDay !== undefined) agenda.isAllDay = dto.isAllDay;
-    return this.agendaRepository.save(agenda);
+    return await this.agendaRepository.save(agenda);
   }
   async deleteAgenda(id: string, userId: string): Promise<void> {
     const agenda = await this.getAgenda(id, userId);
