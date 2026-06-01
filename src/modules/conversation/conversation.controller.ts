@@ -21,6 +21,15 @@ export class ConversationController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Post('dm')
+  createOrGetDm(
+    @User('userId') userId: string,
+    @Body('targetUserId') targetUserId: string,
+  ) {
+    return this.conversationService.createOrGetDm(userId, targetUserId);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get()
   listConversations(
     @User('userId') userId: string,
@@ -33,6 +42,12 @@ export class ConversationController {
   @Get(':id')
   getConversation(@Param('id') id: string) {
     return this.conversationService.getConversation(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get(':id/members')
+  getMembers(@Param('id') id: string) {
+    return this.conversationService.getMembers(id);
   }
 
   @UseGuards(JwtAuthGuard)

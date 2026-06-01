@@ -4,7 +4,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan, ILike, FindOptionsWhere } from 'typeorm';
+import { Repository, LessThan, ILike, FindOptionsWhere, In, Not } from 'typeorm';
 import {
   Message,
   MessageStatus,
@@ -79,10 +79,13 @@ export class MessageService {
 
   async markAsRead(conversationId: string, userId: string) {
     await this.messageRepository.update(
-      { conversationId, status: MessageStatus.DELIVERED }, // or sent
+      { 
+        conversationId, 
+        senderId: Not(userId),
+        status: In([MessageStatus.SENT, MessageStatus.DELIVERED]) 
+      },
       { status: MessageStatus.READ },
     );
-    // You might want to filter this better (e.g. only where senderId != userId)
 
     // Emit event
     // this.chatGateway.server.to(conversationId).emit('message.read', { conversationId, userId }); // Handled in gateway directly if preferred, but doing it here ensures logic

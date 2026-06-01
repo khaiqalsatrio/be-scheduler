@@ -6,6 +6,7 @@ import {
   Patch,
   Post,
   UseGuards,
+  Delete,
 } from '@nestjs/common';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -45,5 +46,11 @@ export class AgendaController {
     @Body() dto: UpdateAgendaDto,
   ) {
     return this.agendaService.updateAgenda(id, userId, dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  deleteAgenda(@User('userId') userId: string, @Param('id') id: string) {
+    return this.agendaService.deleteAgenda(id, userId);
   }
 }

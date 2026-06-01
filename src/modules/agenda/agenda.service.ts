@@ -16,11 +16,11 @@ export class AgendaService {
     const agenda = this.agendaRepository.create({
       userId,
       title: dto.title,
-      description: dto.description,
+      description: dto.note,
       startAt: new Date(dto.startAt),
       endAt: new Date(dto.endAt),
       location: dto.location,
-      isAllDay: dto.isAllDay,
+      isAllDay: dto.isAllDay ?? false,
     });
     return this.agendaRepository.save(agenda);
   }
@@ -46,11 +46,15 @@ export class AgendaService {
   ): Promise<Agenda> {
     const agenda = await this.getAgenda(id, userId);
     if (dto.title !== undefined) agenda.title = dto.title;
-    if (dto.description !== undefined) agenda.description = dto.description;
+    if (dto.note !== undefined) agenda.description = dto.note;
     if (dto.startAt !== undefined) agenda.startAt = new Date(dto.startAt);
     if (dto.endAt !== undefined) agenda.endAt = new Date(dto.endAt);
     if (dto.location !== undefined) agenda.location = dto.location;
     if (dto.isAllDay !== undefined) agenda.isAllDay = dto.isAllDay;
     return this.agendaRepository.save(agenda);
+  }
+  async deleteAgenda(id: string, userId: string): Promise<void> {
+    const agenda = await this.getAgenda(id, userId);
+    await this.agendaRepository.remove(agenda);
   }
 }

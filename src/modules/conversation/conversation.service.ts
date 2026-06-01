@@ -48,6 +48,59 @@ export class ConversationService {
     return savedConversation;
   }
 
+  async createOrGetDm(userId: string, targetUserId: string): Promise<Conversation> {
+    const myConversations = await this.memberRepository.find({
+      where: { userId },
+    });
+    const myConvIds = myConversations.map((m) => m.conversationId);
+
+    if (myConvIds.length > 0) {
+      const existingDm = await this.conversationRepository
+        .createQueryBuilder('conversation')
+        .innerJoin('conversation.members', 'member1')
+        .innerJoin('conversation.members', 'member2')
+        .where('conversation.type = :type', { type: 'dm' })
+        .andWhere('conversation.id IN (:...ids)', { ids: myConvIds })
+        .andWhere('member1.user_id = :userId', { userId })
+        .andWhere('member2.user_id = :targetUserId', { targetUserId })
+        .getOne();
+
+      if (existingDm) {
+        return existingDm;
+      }
+    }
+
+    const conversation = this.conversationRepository.create({
+      type: 'dm' as any,
+      knowledgePolicy: 'llm',
+      knowledgeIds: [],
+    });
+    const savedConversation = await this.conversationRepository.save(conversation);
+
+    const now = new Date();
+    const user1 = this.memberRepository.create({
+      conversationId: savedConversation.id,
+      userId,
+      role: MemberRole.MEMBER,
+      joinedAt: now,
+      isMuted: false,
+      isArchived: false,
+    });
+    const user2 = this.memberRepository.create({
+      conversationId: savedConversation.id,
+      userId: targetUserId,
+      role: MemberRole.MEMBER,
+      joinedAt: now,
+      isMuted: false,
+      isArchived: false,
+    });
+
+    await this.memberRepository.save([user1, user2]);
+    savedConversation.members = [user1, user2];
+    
+    return savedConversation;
+  }
+
   async listConversations(userId: string, type?: string): Promise<any[]> {
     const members = await this.memberRepository.find({ where: { userId } });
     const conversationIds = members.map((member) => member.conversationId);
@@ -119,6 +172,14 @@ export class ConversationService {
       throw new NotFoundException('Conversation not found');
     }
     return conversation;
+  }
+
+  async getMembers(conversationId: string): Promise<ConversationMember[]> {
+    await this.getConversation(conversationId);
+    return this.memberRepository.find({
+      where: { conversationId },
+      relations: ['user'],
+    });
   }
 
   async addMember(
