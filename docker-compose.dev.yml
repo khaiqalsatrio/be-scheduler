@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: scheduler-postgres-dev
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Alfirdaus29
+      POSTGRES_DB: scheduler
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - scheduler-network-dev
+
+  # NestJS Backend (Development)
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: scheduler-backend-dev
+    environment:
+      NODE_ENV: development
+      PORT: 4000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: Alfirdaus29
+      DB_NAME: scheduler
+      DB_SYNCHRONIZE: true
+      JWT_SECRET: development-jwt-secret
+      PII_ENCRYPTION_KEY: development-jwt-secret
+      SWAGGER_USER: admin
+      SWAGGER_PASSWORD: admin
+    ports:
+      - "4001:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      # Hot-reload source code
+      - ./src:/app/src
+      - ./test:/app/test
+      - ./dist:/app/dist
+      # Upload folder as Docker volume
+      - uploads_data_dev:/app/uploads
+    networks:
+      - scheduler-network-dev
+    restart: unless-stopped
+
+volumes:
+  postgres_data_dev:
+    driver: local
+  uploads_data_dev:
+    driver: local
+
+networks:
+  scheduler-network-dev:
+    driver: bridge

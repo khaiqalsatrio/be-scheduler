@@ -1,0 +1,25 @@
+# Development Dockerfile with hot-reload
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install nodemon for development
+RUN npm install -g nodemon
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies (including dev)
+RUN npm ci
+
+# Copy source code
+COPY . .
+
+# Expose port
+EXPOSE 4000
+
+# Create uploads directory
+RUN mkdir -p /app/uploads/avatars
+
+# Start in development mode with watch
+CMD ["npm", "run", "start:dev"]
