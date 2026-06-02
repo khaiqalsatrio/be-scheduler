@@ -5,6 +5,7 @@ import { Document } from '../../typeorm/entities/document.entity';
 import { AgentService } from '../agent/agent.service';
 import * as fs from 'fs';
 import * as path from 'path';
+const PDFDocument = require('pdfkit');
 const pdfParse = require('pdf-parse');
 
 @Injectable()
@@ -68,7 +69,28 @@ export class DocumentService {
     }
   }
 
-  async generateRecap(sourceDocumentIds: string[], context: string) {
+  private async createPdfFromText(text: string, filePath: string, title: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const doc = new PDFDocument({ margin: 50 });
+      const writeStream = fs.createWriteStream(filePath);
+      
+      doc.pipe(writeStream);
+      
+      // Tambahkan Judul
+      doc.fontSize(20).text(title, { align: 'center' });
+      doc.moveDown();
+      
+      // Tambahkan Konten
+      doc.fontSize(12).text(text, { align: 'justify' });
+      
+      doc.end();
+      
+      writeStream.on('finish', resolve);
+      writeStream.on('error', reject);
+    });
+  }
+
+  async generateRecap(sourceDocumentIds: string[], context: string, userId: string, customTitle?: string) {
     let docTitle = 'Dokumen';
     let fileContent = '';
     if (sourceDocumentIds && sourceDocumentIds.length > 0) {
@@ -81,13 +103,32 @@ export class DocumentService {
     }
     const prompt = `Tolong buatkan rekap/ringkasan berdasarkan konteks: ${context}. Judul dokumen adalah "${docTitle}". ${fileContent ? fileContent : '(Teks tidak tersedia, buatkan simulasi logis berdasarkan judul saja)'}`;
     const aiResponse = await this.agentService.askAgent(prompt);
+    
+    const finalTitle = customTitle || 'AI Generate - Recap';
+    const filename = `${Date.now()}-recap.pdf`;
+    const filePath = path.join(process.cwd(), 'uploads', filename);
+    
+    await this.createPdfFromText(aiResponse.answer, filePath, finalTitle);
+    
+    const stat = fs.statSync(filePath);
+    const newDoc = this.documentRepo.create({
+      title: finalTitle,
+      file_url: `/uploads/${filename}`,
+      file_size: stat.size,
+      file_type: 'application/pdf',
+      location: 'AI Generated',
+      modifiedBy: { id: userId },
+    });
+    const savedDoc = await this.documentRepo.save(newDoc);
+
     return {
       result: aiResponse.answer,
-      document_url: 'http://mockurl.com/recap.pdf',
+      document: savedDoc,
+      document_url: savedDoc.file_url,
     };
   }
 
-  async generateReport(sourceDocumentIds: string[], context: string) {
+  async generateReport(sourceDocumentIds: string[], context: string, userId: string, customTitle?: string) {
     let docTitle = 'Dokumen';
     let fileContent = '';
     if (sourceDocumentIds && sourceDocumentIds.length > 0) {
@@ -100,13 +141,32 @@ export class DocumentService {
     }
     const prompt = `Tolong buatkan laporan (report) berdasarkan konteks: ${context}. Judul dokumen adalah "${docTitle}". ${fileContent ? fileContent : '(Teks tidak tersedia, buatkan simulasi logis berdasarkan judul saja)'}`;
     const aiResponse = await this.agentService.askAgent(prompt);
+    
+    const finalTitle = customTitle || 'AI Generate - Report';
+    const filename = `${Date.now()}-report.pdf`;
+    const filePath = path.join(process.cwd(), 'uploads', filename);
+    
+    await this.createPdfFromText(aiResponse.answer, filePath, finalTitle);
+    
+    const stat = fs.statSync(filePath);
+    const newDoc = this.documentRepo.create({
+      title: finalTitle,
+      file_url: `/uploads/${filename}`,
+      file_size: stat.size,
+      file_type: 'application/pdf',
+      location: 'AI Generated',
+      modifiedBy: { id: userId },
+    });
+    const savedDoc = await this.documentRepo.save(newDoc);
+
     return {
       result: aiResponse.answer,
-      document_url: 'http://mockurl.com/report.pdf',
+      document: savedDoc,
+      document_url: savedDoc.file_url,
     };
   }
 
-  async generateMom(sourceDocumentIds: string[], context: string) {
+  async generateMom(sourceDocumentIds: string[], context: string, userId: string, customTitle?: string) {
     let docTitle = 'Dokumen';
     let fileContent = '';
     if (sourceDocumentIds && sourceDocumentIds.length > 0) {
@@ -119,9 +179,28 @@ export class DocumentService {
     }
     const prompt = `Tolong buatkan Minutes of Meeting (MoM) berdasarkan konteks: ${context}. Judul dokumen adalah "${docTitle}". ${fileContent ? fileContent : '(Teks tidak tersedia, buatkan simulasi MoM logis berdasarkan judul saja)'}`;
     const aiResponse = await this.agentService.askAgent(prompt);
+    
+    const finalTitle = customTitle || 'AI Generate - MoM';
+    const filename = `${Date.now()}-mom.pdf`;
+    const filePath = path.join(process.cwd(), 'uploads', filename);
+    
+    await this.createPdfFromText(aiResponse.answer, filePath, finalTitle);
+    
+    const stat = fs.statSync(filePath);
+    const newDoc = this.documentRepo.create({
+      title: finalTitle,
+      file_url: `/uploads/${filename}`,
+      file_size: stat.size,
+      file_type: 'application/pdf',
+      location: 'AI Generated',
+      modifiedBy: { id: userId },
+    });
+    const savedDoc = await this.documentRepo.save(newDoc);
+
     return {
       result: aiResponse.answer,
-      document_url: 'http://mockurl.com/mom.pdf',
+      document: savedDoc,
+      document_url: savedDoc.file_url,
     };
   }
 }

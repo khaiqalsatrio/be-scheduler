@@ -45,33 +45,42 @@ export class DocumentController {
   @UseGuards(JwtAuthGuard)
   @Post('generate/recap')
   async generateRecap(
-    @Body() body: { source_document_ids: string[]; context: string },
+    @Body() body: { source_document_ids: string[]; context: string; title?: string },
+    @User('userId') userId: string,
   ) {
     return this.documentService.generateRecap(
       body.source_document_ids,
       body.context,
+      userId,
+      body.title,
     );
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('generate/report')
   async generateReport(
-    @Body() body: { source_document_ids: string[]; context: string },
+    @Body() body: { source_document_ids: string[]; context: string; title?: string },
+    @User('userId') userId: string,
   ) {
     return this.documentService.generateReport(
       body.source_document_ids,
       body.context,
+      userId,
+      body.title,
     );
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('generate/mom')
   async generateMom(
-    @Body() body: { source_document_ids: string[]; context: string },
+    @Body() body: { source_document_ids: string[]; context: string; title?: string },
+    @User('userId') userId: string,
   ) {
     return this.documentService.generateMom(
       body.source_document_ids,
       body.context,
+      userId,
+      body.title,
     );
   }
 }
