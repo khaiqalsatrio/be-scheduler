@@ -16,8 +16,11 @@ export class DocumentService {
     private readonly agentService: AgentService,
   ) {}
 
-  async findAll() {
-    return this.documentRepo.find({ relations: ['modifiedBy'] });
+  async findAll(userId: string) {
+    return this.documentRepo.find({
+      where: { modifiedBy: { id: userId } },
+      relations: ['modifiedBy'],
+    });
   }
 
   async create(

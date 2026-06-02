@@ -20,8 +20,8 @@ export class DocumentController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  async getDocuments() {
-    return this.documentService.findAll();
+  async getDocuments(@User('userId') userId: string) {
+    return this.documentService.findAll(userId);
   }
 
   @UseGuards(JwtAuthGuard)
