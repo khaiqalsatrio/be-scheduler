@@ -43,6 +43,21 @@ export class DocumentService {
   async remove(id: string) {
     const doc = await this.documentRepo.findOne({ where: { id } });
     if (!doc) throw new NotFoundException('Document not found');
+    
+    if (doc.file_url) {
+      const filename = doc.file_url.split('/').pop();
+      if (filename) {
+        const filePath = path.join(process.cwd(), 'uploads', filename);
+        if (fs.existsSync(filePath)) {
+          try {
+            fs.unlinkSync(filePath);
+          } catch (e) {
+            console.error('Failed to delete physical file:', e);
+          }
+        }
+      }
+    }
+    
     return this.documentRepo.remove(doc);
   }
 
