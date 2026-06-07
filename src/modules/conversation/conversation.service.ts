@@ -217,4 +217,21 @@ export class ConversationService {
     });
     return await this.memberRepository.save(member);
   }
+
+  async archiveConversation(
+    conversationId: string,
+    userId: string,
+    isArchived: boolean,
+  ): Promise<ConversationMember> {
+    const member = await this.memberRepository.findOne({
+      where: { conversationId, userId },
+    });
+
+    if (!member) {
+      throw new NotFoundException('Member not found in conversation');
+    }
+
+    member.isArchived = isArchived;
+    return await this.memberRepository.save(member);
+  }
 }

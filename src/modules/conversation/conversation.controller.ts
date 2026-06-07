@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Post,
+  Put,
   UseGuards,
   Query,
 } from '@nestjs/common';
@@ -62,5 +63,15 @@ export class ConversationController {
   @Post(':id/members')
   addMember(@Param('id') id: string, @Body() dto: AddMemberDto) {
     return this.conversationService.addMember(id, dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put(':id/archive')
+  archiveConversation(
+    @Param('id') id: string,
+    @User('userId') userId: string,
+    @Body('isArchived') isArchived: boolean,
+  ) {
+    return this.conversationService.archiveConversation(id, userId, isArchived);
   }
 }
